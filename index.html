@@ -1,0 +1,443 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Extractable Memorization From First Principles</title>
+<meta name="description" content="It's time to retire the &quot;monkey at the typewriter.&quot; We revisit extractable memorization from first principles: whether a model can produce any string was never the question — what matters is how many tries it takes.">
+<meta name="author" content="A. Feder Cooper, Marika Swanberg, Jamie Hayes, Lea Duesterwald, Christopher De Sa, Georgios Kaissis, Daniel E. Ho, Mark A. Lemley, Percy Liang">
+<link rel="canonical" href="https://monkey-emeritus.github.io/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://monkey-emeritus.github.io/">
+<meta property="og:title" content="Extractable Memorization From First Principles">
+<meta property="og:description" content="It's time to retire the &quot;monkey at the typewriter.&quot; We revisit extractable memorization from first principles: whether a model can produce any string was never the question — what matters is how many tries it takes.">
+<meta property="og:image" content="https://monkey-emeritus.github.io/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A pixel-art monkey in a Tyrolean hat and sunglasses reclines in a striped deck chair with an Aperol spritz on the shore of Lake Como, a wooden motorboat moored nearby.">
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://monkey-emeritus.github.io/">
+<meta name="twitter:title" content="Extractable Memorization From First Principles">
+<meta name="twitter:description" content="It's time to retire the &quot;monkey at the typewriter.&quot; We revisit extractable memorization from first principles: whether a model can produce any string was never the question — what matters is how many tries it takes.">
+<meta name="twitter:image" content="https://monkey-emeritus.github.io/og-image.jpg">
+<meta name="twitter:image:alt" content="A pixel-art monkey in a Tyrolean hat and sunglasses reclines in a striped deck chair with an Aperol spritz on the shore of Lake Como, a wooden motorboat moored nearby.">
+<!-- Google Analytics (GA4), privacy-tuned -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JJEC15V3F9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JJEC15V3F9', {
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false
+  });
+</script>
+<style>
+  :root{ --ink:#e7e2d6; --muted:#9a94a6; --accent:#ef9a4e; --line:rgba(231,226,214,.16); --surface:rgba(255,255,255,.045);
+    --serif:ui-serif,Georgia,"Times New Roman",serif; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    background:radial-gradient(120% 90% at 50% 0%, #1c2630 0%, #12181d 60%, #0c0f12 100%);
+    color:var(--ink); font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .topbar{ width:100%; border-bottom:1px solid var(--line); background:rgba(18,24,29,.72);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); position:sticky; top:0; z-index:20; }
+  .topbar .wrap{ max-width:940px; margin:0 auto; padding:0 20px; display:flex; align-items:center; gap:16px; height:54px; }
+  .brand{ flex:1; min-width:0; display:flex; align-items:baseline; gap:12px; }
+  .brand-title{ min-width:0; font-family:var(--serif); font-weight:600; font-size:15px; letter-spacing:-.01em;
+    color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .brand-venue{ flex:none; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--accent); }
+  .btn{ display:inline-block; font-size:13px; font-weight:500; color:var(--ink); background:transparent;
+    border:1px solid var(--line); border-radius:999px; padding:7px 15px; text-decoration:none; white-space:nowrap;
+    transition:border-color .15s ease, background .15s ease; }
+  .btn:hover{ border-color:var(--accent); background:rgba(239,154,78,.10); }
+  .content{ width:100%; max-width:940px; margin:0 auto; padding:26px 20px 48px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .lede{ width:100%; max-width:900px; margin-top:36px; display:flex; flex-direction:column; gap:14px; }
+  .lede h2{ font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.09em; margin:0; }
+  .lede p{ margin:0; font-size:16px; line-height:1.68; color:#cbc7bb; }
+  .lede sup{ font-size:.72em; }
+  .cite{ width:100%; max-width:900px; margin-top:44px; }
+  .cite h2{ font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.09em; margin:2px 0 10px; }
+  .citebox{ position:relative; border:1px solid var(--line); border-radius:10px; background:var(--surface); overflow:hidden; }
+  .citebox pre{ margin:0; padding:16px; overflow-x:auto; font-size:12.5px; line-height:1.55;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--muted); }
+  .copybtn{ position:absolute; top:10px; right:10px; font:inherit; font-size:12px; border:1px solid var(--line);
+    background:rgba(255,255,255,.05); color:var(--muted); border-radius:6px; padding:5px 11px; cursor:pointer; }
+  .copybtn:hover{ border-color:var(--accent); color:var(--ink); }
+  .ack{ width:100%; max-width:900px; margin-top:44px; padding-top:22px; border-top:1px solid var(--line); }
+  .ack-body{ display:flex; align-items:center; gap:22px; }
+  .ack-logo{ flex:none; }
+  .ack-logo img{ height:40px; width:auto; display:block; }
+  .ack-body p{ margin:0; flex:1; color:var(--muted); font-size:13.5px; line-height:1.6; }
+  @media (max-width:520px){ .ack-body{ flex-direction:column; align-items:flex-start; gap:16px; } }
+  .stage{ width:100%; max-width:900px; border-radius:10px; overflow:hidden; line-height:0; position:relative;
+    box-shadow:0 24px 60px -24px rgba(0,0,0,.8), inset 0 0 0 1px rgba(255,255,255,.06); background:#04121a; }
+  canvas{ display:block; width:100%; height:auto; image-rendering:pixelated; }
+  .bar{ display:flex; flex-direction:column; gap:12px; width:100%; max-width:900px; font-size:12px; color:var(--muted); }
+  .bar .title{ color:var(--ink); font-size:30px; font-weight:600; letter-spacing:-.02em; line-height:1.22; }
+  .paper{ width:100%; max-width:900px; margin:6px 0 2px; display:flex; flex-direction:column; gap:10px; }
+  .paper .paper-title{ margin:0; font-weight:600; font-size:23px; letter-spacing:-.02em; line-height:1.28; color:var(--ink); }
+  .paper .authors{ margin:0; font-size:15px; line-height:1.7; color:var(--muted); }
+  .paper .authors a{ color:var(--accent); text-decoration:none; border-bottom:1px solid transparent; transition:border-color .15s ease; }
+  .paper .authors a:hover{ border-bottom-color:var(--accent); }
+  .paper .paper-actions{ margin-top:4px; }
+  .tagline{ width:100%; max-width:900px; margin:0; display:flex; flex-direction:column; gap:13px; }
+  .tagline p{ margin:0; font-size:16px; line-height:1.62; color:var(--ink); }
+  .bio{ margin:0; font-size:18px; line-height:1.5; color:var(--ink); }
+  .tagline em{ font-style:italic; }
+  .tagline sup{ font-size:.72em; }
+  .tagline .footnote{ margin-top:8px; display:flex; flex-direction:column; gap:9px; }
+  .tagline .footnote p{ margin:0; font-size:13px; line-height:1.55; color:var(--muted); }
+  button{ font:inherit; font-size:13px; font-weight:500; color:var(--muted); background:transparent; border:1px solid rgba(231,226,214,.22); border-radius:999px; padding:7px 16px; cursor:pointer; white-space:nowrap; letter-spacing:.01em; transition:color .15s ease, border-color .15s ease, background .15s ease; }
+  button:hover{ color:var(--ink); border-color:rgba(231,226,214,.45); background:rgba(231,226,214,.06); }
+  #replay{ position:absolute; top:12px; left:12px; z-index:2; color:var(--ink); background:transparent; border-color:rgba(255,255,255,.28); text-shadow:0 1px 3px rgba(0,0,0,.6); opacity:0; pointer-events:none; transition:opacity 1.4s ease, color .15s ease, border-color .15s ease, background .15s ease; }
+  #replay.show{ opacity:1; pointer-events:auto; }
+  @media (hover:hover){ #replay:hover{ color:var(--ink); background:rgba(10,14,18,.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-color:var(--accent); text-shadow:none; } }
+</style>
+<header class="topbar"><div class="wrap">
+  <div class="brand"><span class="brand-title">Extractable Memorization From First Principles</span><span class="brand-venue">preprint 2026</span></div>
+  <nav><a class="btn" href="https://arxiv.org/abs/2607.12649" target="_blank" rel="noopener">Read the paper</a></nav>
+</div></header>
+
+<div class="content">
+<div class="bar">
+  <b class="title">It's time to retire the "monkey at the typewriter"</b>
+  <p class="bio">He was very early at OpenAI, is very tired, and has chronic carpal tunnel. He'll be retiring to Lake Como.</p>
+</div>
+
+<div class="stage">
+  <canvas id="c"></canvas>
+  <button id="replay">↻ replay</button>
+</div>
+
+<div class="paper">
+  <h2 class="paper-title">Extractable Memorization From First Principles</h2>
+  <p class="authors"><a href="https://afedercooper.info/" target="_blank" rel="noopener">A. Feder Cooper</a>, <a href="https://marikaswanberg.com/" target="_blank" rel="noopener">Marika Swanberg</a>, <a href="https://jamiehay.es/" target="_blank" rel="noopener">Jamie Hayes</a>, Lea Duesterwald, <a href="https://www.cs.cornell.edu/~cdesa/" target="_blank" rel="noopener">Christopher De Sa</a>, <a href="https://www.g-k.ai/" target="_blank" rel="noopener">Georgios Kaissis</a>, <a href="https://law.stanford.edu/daniel-e-ho/" target="_blank" rel="noopener">Daniel E. Ho</a>, <a href="https://law.stanford.edu/mark-a-lemley/" target="_blank" rel="noopener">Mark A. Lemley</a>, <a href="https://cs.stanford.edu/~pliang/" target="_blank" rel="noopener">Percy Liang</a></p>
+  <div class="paper-actions"><a class="btn" href="https://arxiv.org/abs/2607.12649" target="_blank" rel="noopener">Read the paper</a></div>
+</div>
+
+<div class="tagline">
+  <p>The monkey at the typewriter hits keys at random: give him long enough and, by chance alone, he would eventually produce any text, even something as long and complex as the complete works of Shakespeare. Some people think language models are just like that. They're non-deterministic, producing all sorts of text, and so, queried enough, a language model will eventually produce anything. And when that anything is its training data, reproduced word for word, the argument goes: it's not "memorization," it's just the monkey getting a lucky draw.</p>
+  <p>But whether it's <em>possible</em> for a model to produce any string was never the right question. What matters is <em>how many tries</em> it takes. We can actually run that experiment: a model can't have memorized text it never trained on, so however many tries it takes to reproduce that text shows how far prediction gets you.</p>
+  <p>For instance, we can compare how the model behaves on a book it was trained on versus a closely matched one it wasn't. Llama 3.1 models were trained on Dan Brown's <em>The Da Vinci Code</em>, but not his 2025 Robert Langdon novel, <em>The Secret of Secrets</em>: same author, same main character, same genre, same style — just published after the training cutoff. With the same prompting strategy we use for extracting memorized training data, even the most probable (easiest to generate) passage of that non-training book would take about 3×10<sup>21</sup> queries to get out. At one query per second, that'd take over 5,000× the amount of time since the Big Bang. For <em>The Da Vinci Code</em> (the book in its training data), memorized passages run the whole gamut, from ones the model reproduces on just one try to ones no easier than that easiest non-training passage.</p>
+  <p>The point is, that gap — between text in the training data and the easiest matched non-training data — is measurable. And training text that clears that bar is what memorization looks like.<sup>*</sup></p>
+  <p>The monkey at the typewriter doesn't really have anything to do with this. It's time he traded that typewriter for a spritz.</p>
+  <div class="footnote">
+    <p><span class="fn-star">*</span> Training data that clear this bar can still be very unlikely, so something can be memorized but still not really generated in practice. That's because <em>memorization</em> in the model and <em>extraction</em> of memorized training data in outputs aren't the same thing.</p>
+    <p>And a perfect match isn't always available. You can't get a new Sherlock Holmes book to use as non-training data, because Sir Arthur Conan Doyle isn't writing anymore. But you can run a best-effort matched comparison (on other short stories, other mysteries), and draw a more conservative line between memorization and predictability.</p>
+  </div>
+</div>
+
+<section class="lede">
+  <h2>Actual paper abstract</h2>
+  <p>Recent work on extractable memorization in language models suffers from two contrasting validity problems. Some studies overstate extraction due to tests that don't adequately support the claim, e.g., relying on sequences too short to distinguish memorization from predictability or leaking the target directly in the prompt. Others imply that extraction is unreliable evidence of memorization at all, since models can also reproduce real-world text they weren't explicitly trained on. In different ways and to different degrees, both overlook what makes a valid extraction claim: the model must generate a training sequence with high enough probability to indicate memorization.</p>
+  <p>To determine what's high enough, one has to perform a matched comparison: measuring the generation probabilities of both the training sequences of interest and comparable non-training sequences. Because non-training sequences cannot have been memorized, their probabilities provide a baseline for predictability, and a training sequence exceeding this baseline provides evidence of memorization. We formalize matched comparisons in two ways: (1) a conformal test that calibrates a threshold to a chosen false-positive rate when training and non-training sequences are sampled from populations, and (2) a census that calibrates against a matched non-training document when the object is a single document (e.g., a specific book).</p>
+  <p>Our experiments show that matched comparisons enable rigorous, calibrated memorization claims, and reveal where prior setups have validity issues. For instance, on Wikipedia, OLMo 2 32B reproduces non-training 10-token suffixes roughly 24% as often as training ones: that share of the training generation rate reflects false positives, not memorization. For Llama 3.1 70B on books, the thresholds we calibrate are as low as 10<sup>−27</sup>, supporting memorization claims for sequences that no feasible sampling budget would extract. Based on these results, we refine "extractable memorization" to require both a valid memorization claim and near-certain generation within a realistic budget.</p>
+</section>
+
+<section class="cite">
+  <h2>How to cite</h2>
+  <div class="citebox">
+    <button class="copybtn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('bibtex').innerText);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1200)">Copy</button>
+    <pre id="bibtex">@article{cooper2026extractable,
+  title   = {{Extractable Memorization From First Principles}},
+  author  = {Cooper, A. Feder and Swanberg, Marika and Hayes, Jamie and Duesterwald, Lea and
+             De Sa, Christopher and Ho, Daniel E. and Lemley, Mark A. and Liang, Percy},
+  journal = {arXiv preprint arXiv:2607.12649},
+  year    = {2026}
+}</pre>
+  </div>
+</section>
+
+<footer class="ack">
+  <div class="ack-body">
+    <div class="ack-logo"><img src="hai-mono.png" alt="Stanford HAI"></div>
+    <p>This work was supported by a Stanford University Human-Centered Artificial Intelligence (HAI) seed grant, "Assessing Copyright Risks of Training Data 'Memorization' and 'Extraction' for Open-Weight Language&nbsp;Models."</p>
+  </div>
+</footer>
+</div>
+<script>
+(() => {
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hash=(x,y)=>{ let n=Math.sin(x*127.1+y*311.7)*43758.5453; return n-Math.floor(n); };
+  const base=new Image(), boat=new Image(), monkey=new Image(), twImg=new Image(), throwImg=new Image(), crankyImg=new Image(), heroImg=new Image(), dressImg=new Image(), spritzImg=new Image(), sipImg=new Image();
+  let ready=0; const go=()=>{ if(++ready===10) init(); };
+  base.onload=go; boat.onload=go; monkey.onload=go; twImg.onload=go; throwImg.onload=go; crankyImg.onload=go; heroImg.onload=go; dressImg.onload=go; spritzImg.onload=go; sipImg.onload=go;
+  base.src='como-cartoon3.png'; boat.src='boat_cut.png'; monkey.src='mk_crop.png';
+  twImg.src='typewriter_cut.png'; throwImg.src='mk_throw_cut.png'; crankyImg.src='mk_cranky_cut.png'; heroImg.src='mk_recline_cut.png'; dressImg.src='mk_recline_dressed.png'; spritzImg.src='mk_recline_spritz.png'; sipImg.src='mk_recline_sip.png';
+
+  function init(){
+    const W=base.naturalWidth, H=base.naturalHeight;
+    cv.width=W; cv.height=H; ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(base,0,0);
+    let d=null; try{ d=ctx.getImageData(0,0,W,H).data; }catch(e){ d=null; }
+    const at=(x,y)=>{ const i=((y|0)*W+(x|0))*4; return [d[i],d[i+1],d[i+2]]; };
+    const isWater=(x,y)=>{ if(!d)return false; const [r,g,b]=at(x,y); return r<150&&g>128&&b>132&&g>r+28&&b>r+22&&b<206&&Math.abs(g-b)<58; };
+
+    // foliage overlay (birds/boat pass behind the flowers)
+    const FOL_X=1006, FOL_H=590; let folOverlay=null;
+    if(d){ folOverlay=document.createElement('canvas'); folOverlay.width=W-FOL_X; folOverlay.height=FOL_H;
+      const octx=folOverlay.getContext('2d'), oim=octx.createImageData(W-FOL_X,FOL_H);
+      for(let y=0;y<FOL_H;y++)for(let x=0;x<W-FOL_X;x++){ const sx=x+FOL_X, i=(y*W+sx)*4, r=d[i],g=d[i+1],b=d[i+2];
+        const leaf=g>b+8&&g>r-6&&g>60, flower=r>150&&r>b+22&&r>g+8, dark=(r+g+b)<270;
+        const j=(y*(W-FOL_X)+x)*4; oim.data[j]=r;oim.data[j+1]=g;oim.data[j+2]=b; oim.data[j+3]=(leaf||flower||dark)?255:0; }
+      octx.putImageData(oim,0,0);
+    }
+    const foliageTop=()=>{ if(folOverlay) ctx.drawImage(folOverlay,FOL_X,0); };
+
+    const pathLeft=y=>1050-0.687*(y-635);
+    function reflection(t){ const top=604,bot=904;
+      for(let y=top;y<bot;y+=2){ const w=Math.min(W,(y-600)/44*W,pathLeft(y)); if(w<=3) continue;
+        const depth=(y-top)/(bot-top), dx=Math.round(Math.sin(y*0.05+t*1.5)*(1.5+depth*4.6));
+        const aw=(w-Math.abs(dx))|0, sx=dx<0?-dx:0, ddx=dx>0?dx:0; ctx.drawImage(base,sx,y,aw,2,ddx,y,aw,2); }
+    }
+    const waterTop=x=>600+(x/W)*44;
+    function water(t){ for(let y=600;y<H;y+=6) for(let x=0;x<W-4;x+=6){ if(y<waterTop(x)||!isWater(x,y)) continue;
+      const w=hash(x+Math.floor(t*1.3)*6,y), th=(y>680&&y<940)?0.85:0.91;
+      if(w>th){ ctx.fillStyle=w>0.965?'rgba(238,252,247,.95)':'rgba(190,240,230,.7)'; ctx.fillRect(x,y,w>0.965?5:3,2); } }
+    }
+    function bird(x,y,a){ ctx.fillStyle='rgba(24,28,36,.85)'; const t1=Math.round(a*2),t2=Math.round(a*3)+1;
+      ctx.fillRect(x-1,y,1,1);ctx.fillRect(x-3,y-t1,2,1);ctx.fillRect(x-6,y-t2,3,1);
+      ctx.fillRect(x+1,y,1,1);ctx.fillRect(x+3,y-t1,2,1);ctx.fillRect(x+4,y-t2,3,1); }
+    function birds(t){ const T=44,cross=26,ph=t%T; if(ph>cross) return;
+      const bx=-60+(ph/cross)*(W+120), by=110+Math.sin((ph/cross)*3)*14, fl=[[0,0],[-17,-7],[-17,7],[-34,-13],[-34,13]];
+      for(let i=0;i<fl.length;i++){ const x=bx+fl[i][0],y=by+fl[i][1]; if(x<-14) continue; bird(Math.round(x),Math.round(y),(Math.sin(t*7+i*1.4)+1)/2); } }
+
+    // ---------- boat sequence ----------
+    const ENTER={x:-200,y:658}, TOSS={x:486,y:716}, DROP={x:872,y:806};
+    const boatW=y=>300+(y-716)*0.578;      // gentle perspective: ~266 (far) -> 300 (pause) -> 352 (drop)
+    const BOAT_AR=boat.naturalHeight/boat.naturalWidth;
+    const seg=(p,q,u)=>({x:p.x+(q.x-p.x)*u, y:p.y+(q.y-p.y)*u});
+    const easeOut=u=>1-(1-u)*(1-u), easeInOut=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+    // timeline (s):  glide-in | hold(toss) | glide-out | settle
+    const G1=4.5, HOLD=2.8, G2=3.2, tossAt=G1+0.7, tossDur=1.0, splashAt=tossAt+tossDur;
+    const LAND={x:TOSS.x-260, y:TOSS.y+92};   // further down-left so the ripple clears the hull
+
+    function boatPos(t){
+      if(t<G1) return {p:seg(ENTER,TOSS,easeOut(t/G1)), phase:'in'};
+      if(t<G1+HOLD) return {p:TOSS, phase:'hold'};
+      if(t<G1+HOLD+G2) return {p:seg(TOSS,DROP,easeInOut((t-G1-HOLD)/G2)), phase:'out'};
+      return {p:DROP, phase:'done'};
+    }
+    // once parked at the shore the hull rides the small lake swell — a gentle vertical bob
+    // that eases in on arrival and never stops (kept out of boatW so his scale doesn't jitter).
+    const tDrop=G1+HOLD+G2;
+    function boatBob(t){ if(t<tDrop) return 0;
+      const ramp=Math.min(1,(t-tDrop)/1.2);                       // ease the swell in over ~1.2s
+      return ramp*(Math.sin(t*1.9)*3 + Math.sin(t*0.7+1.3)*1.4);  // two slow components -> irregular, unmechanical
+    }
+    function drawBoat(p,bob=0){ const dw=boatW(p.y), dh=dw*BOAT_AR;
+      ctx.drawImage(boat, Math.round(p.x-dw/2), Math.round(p.y-dh*0.82+bob), Math.round(dw), Math.round(dh)); }
+
+    // ---------- poof transport: boat rider -> reclining hero in the chair ----------
+    const HERO_CX=1065, HERO_YBASE=1042, HERO_H=268.5, HERO_AR=heroImg.naturalHeight/heroImg.naturalWidth;
+    const HERO_PX=HERO_CX+0.08*(HERO_H/HERO_AR), HERO_PY=HERO_YBASE-HERO_H*0.52;  // poof/sparkle center over his body (the chair+tail pull the box center off him)
+    const ACC_X=HERO_PX, ACC_Y=HERO_YBASE-HERO_H*0.70;                            // accessory poof sits higher, over hat/face/scarf
+    const poofAt=tDrop+1.5, poofDur=0.55, poofFade=0.3;   // park and bob a beat, then poof him ashore into the chair
+    const dressAt=poofAt+1.9, dressDur=0.5;               // ...then a beat, and poof on the Tyrolean hat + shades + scarf
+    const spritzAt=dressAt+1.6, SW=0.3;                    // ...then the Aperol spritz poofs into his water-side hand
+    const SPRITZ_PX=1025, SPRITZ_PY=915;                  // spritz poof centre (covers the raising arm + glass)
+    function poof(cx,cy,age,rad){           // cartoon puff: a cluster of soft white blooms that grow then fade
+      if(age<0||age>poofDur+0.2) return;
+      const u=age/(poofDur+0.2), grow=easeOut(Math.min(1,u*1.25)), fade=Math.max(0,1-u);
+      const blobs=[[0,0,1],[-0.55,-0.3,0.72],[0.55,-0.32,0.78],[-0.5,0.32,0.68],[0.52,0.34,0.7],[0,-0.6,0.6],[0.05,0.55,0.62]];
+      for(const [dx,dy,pr] of blobs){
+        const R=rad*pr*(0.55+grow), px=cx+dx*rad*grow*1.35, py=cy+dy*rad*grow*1.35;
+        const g=ctx.createRadialGradient(px,py,0,px,py,Math.max(1,R));
+        g.addColorStop(0,'rgba(255,255,255,'+(0.92*fade)+')');
+        g.addColorStop(0.65,'rgba(247,244,236,'+(0.5*fade)+')');
+        g.addColorStop(1,'rgba(247,244,236,0)');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,R,0,7); ctx.fill();
+      }
+    }
+    function sparkles(cx,cy,age,rad,seed){   // warm 4-point star glints that rise off him and twinkle out
+      if(age<0||age>poofDur+0.5) return;
+      for(let i=0;i<14;i++){
+        const h1=hash(seed+i*12.9,3.1+i*4.7), h2=hash(7.7+i*2.3,seed-i*6.1), h3=hash(seed*1.7+i*9.2,i*3.3);
+        const birth=h3*0.4, u=(age-birth)/0.5;
+        if(u<0||u>1) continue;
+        const tw=Math.sin(u*Math.PI);                       // grow in then twinkle out
+        const ang=h1*6.2832, dist=(0.3+0.95*h2)*rad;
+        const px=cx+Math.cos(ang)*dist, py=cy+Math.sin(ang)*dist*0.9 - h2*0.55*rad;  // bias upward for contrast
+        const s=(0.07+0.11*h2)*rad*tw;
+        if(s<0.5) continue;
+        ctx.save();
+        const gl=ctx.createRadialGradient(px,py,0,px,py,s*2.6);   // soft gold halo lifts the glint off any background
+        gl.addColorStop(0,'rgba(255,212,120,'+(0.55*tw)+')'); gl.addColorStop(1,'rgba(255,212,120,0)');
+        ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(px,py,s*2.6,0,7); ctx.fill();
+        ctx.globalAlpha=Math.min(1,tw*1.35); ctx.fillStyle='#fff';
+        ctx.beginPath(); const inr=s*0.3;
+        for(let k=0;k<8;k++){ const r=(k&1)?inr:s, a=k*0.7853982-1.5707963; const x=px+Math.cos(a)*r, y=py+Math.sin(a)*r; k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+        ctx.closePath(); ctx.fill(); ctx.restore();
+      }
+    }
+    function drawHero(t){   // bare hero: base layer, retired once the spritz crossfade completes
+      if(t<poofAt||t>spritzAt+SW) return;
+      const u=Math.min(1,(t-poofAt)/poofDur), a=Math.min(1,u*1.5), sc=0.86+0.14*easeOut(u);
+      const w=HERO_H/HERO_AR*sc, h=HERO_H*sc;
+      ctx.save(); ctx.globalAlpha=a;
+      ctx.drawImage(heroImg, Math.round(HERO_CX-w/2), Math.round(HERO_YBASE-h), Math.round(w), Math.round(h));
+      ctx.restore();
+    }
+    function drawDressed(t){   // same pose+scale as the bare hero (registered); fades in so the accessories bloom on
+      if(t<dressAt||t>spritzAt+SW) return;
+      const a=Math.min(1,(t-dressAt)/dressDur*1.5), w=HERO_H/HERO_AR, h=HERO_H;
+      ctx.save(); ctx.globalAlpha=a;
+      ctx.drawImage(dressImg, Math.round(HERO_CX-w/2), Math.round(HERO_YBASE-h), Math.round(w), Math.round(h));
+      ctx.restore();
+    }
+    // the sip loop: hard-cut between rest and sip (only the arm/glass/mouth region differs, so nothing else flickers)
+    const sipStart=spritzAt+SW+1.8, sipHold=1.3;                 // first sip timing (after the drink appears) stays locked
+    const sipGaps=[6,12,8,15,5.5,10.5,13.5,7.5];                 // leisurely, widely varied rests between sips (~5.5–15s); sampled per sip
+    function sipping(t){ if(t<sipStart) return false;
+      let s=sipStart;
+      for(let i=0;i<100000;i++){ if(t<s+sipHold) return t>=s;    // in this sip (true) or the rest before it (false)
+        s+=sipHold+sipGaps[Math.floor(hash(i*7.3+1.1,2.7)*sipGaps.length)]; }
+      return false; }
+    function drawSpritz(t){   // his water-side hand raises with the spritz; crossfades in under the poof (hides the arm move)
+      if(t<spritzAt) return;
+      const a=Math.min(1,(t-spritzAt)/SW), w=HERO_H/HERO_AR, h=HERO_H;
+      const img=sipping(t)?sipImg:spritzImg;   // once settled, cut up to sip and back on a slow loop
+      ctx.save(); ctx.globalAlpha=a;
+      ctx.drawImage(img, Math.round(HERO_CX-w/2), Math.round(HERO_YBASE-h), Math.round(w), Math.round(h));
+      ctx.restore();
+    }
+
+    // monkey rides in the cockpit: attached to the boat (seat at boat-local 0.38,0.67), scales with it
+    const MK_W=0.45, MK_SEAT=0.27, MK_AR=monkey.naturalHeight/monkey.naturalWidth;  // width & seat-x as fractions of boat (moved back off the windshield)
+    const MKT_W=0.42, MKT_SEAT=0.34, MKT_AR=throwImg.naturalHeight/throwImg.naturalWidth;  // throw pose (front, arms up), nudged right off the flag
+    const MKC_W=0.38, MKC_SEAT=0.34, MKC_AR=crankyImg.naturalHeight/crankyImg.naturalWidth; // cranky pose (front, hands down, flat mouth)
+    const cAt=G1+HOLD+1.3;    // hold arms-up through the splash AND 1.3s into the departure; settle (hands down) once underway
+    function drawMonkey(p,t,bob=0){ const dw=boatW(p.y), dh=dw*BOAT_AR, tlx=p.x-dw/2, tly=p.y-dh*0.82+bob, seatY=tly+0.67*dh;
+      if(t<tossAt){ const seatX=tlx+MK_SEAT*dw, mw=MK_W*dw, mh=mw*MK_AR;             // Frame A: typing (side)
+        ctx.drawImage(monkey, Math.round(seatX-0.30*mw), Math.round(seatY-mh), Math.round(mw), Math.round(mh)); }
+      else if(t<cAt){ const seatX=tlx+MKT_SEAT*dw, mw=MKT_W*dw, mh=mw*MKT_AR;        // Frame B: rears up, arms flung (front)
+        ctx.drawImage(throwImg, Math.round(seatX-0.5*mw), Math.round(seatY-mh), Math.round(mw), Math.round(mh)); }
+      else { const seatX=tlx+MKC_SEAT*dw, mw=MKC_W*dw, mh=mw*MKC_AR;                 // Frame C: decompress, hands down, flat mouth
+        ctx.drawImage(crankyImg, Math.round(seatX-0.5*mw), Math.round(seatY-mh), Math.round(mw), Math.round(mh)); }
+    }
+
+    // ---- wake: fading foam trail + Kelvin V + prop-wash churn + bow wave (intensity ∝ speed) ----
+    const trail=[];
+    const sternXY=p=>{ const dw=boatW(p.y), dh=dw*BOAT_AR; return {x:p.x-dw*0.40, y:p.y+dh*0.12, dw}; };
+    function updateTrail(t,p,speed){ const LIFE=1.8;
+      if(speed>45){ const s=sternXY(p); for(const dir of [-1,1])
+        trail.push({x:s.x-4+(Math.random()-.5)*8, y:s.y+dir*4+(Math.random()-.5)*4, born:t, r:3+Math.random()*2}); }
+      while(trail.length && t-trail[0].born>LIFE) trail.shift();
+    }
+    function wake(t,p,speed,vx,vy){ const LIFE=1.8, s=sternXY(p), spd=Math.min(1,speed/240);
+      for(const q of trail){ const age=(t-q.born)/LIFE; if(age>1) continue;                    // fading trail channel
+        ctx.fillStyle=`rgba(250,255,255,${(1-age)*0.6})`; const w=Math.max(2,q.r*(1.4-age));
+        ctx.fillRect(Math.round(q.x),Math.round(q.y),w,Math.max(1,Math.round(w*.55))); }
+      if(speed<45){ for(let i=0;i<4;i++) if(Math.random()<.5){ ctx.fillStyle='rgba(255,255,255,.5)';   // idle lapping
+          ctx.fillRect(Math.round(p.x-s.dw*.32+Math.random()*s.dw*.64), Math.round(s.y+Math.random()*5),3,1); } return; }
+      // churned prop-wash, oriented OPPOSITE the boat's velocity so it trails behind on both legs (no V)
+      const ang=Math.atan2(vy,vx), bx=Math.cos(ang+Math.PI), by=Math.sin(ang+Math.PI), nx=-by, ny=bx;
+      for(let i=0;i<22;i++){ const d=Math.random()*42*spd, o=(Math.random()-.5)*15*spd;         // prop-wash froth (along -vel)
+        ctx.fillStyle=`rgba(255,255,255,${.5+Math.random()*.4})`;
+        ctx.fillRect(Math.round(s.x+bx*d+nx*o), Math.round(s.y+by*d+ny*o), 3+Math.round(Math.random()*2),2); }
+      const wx=p.x+boatW(p.y)*.44, wy=p.y+boatW(p.y)*BOAT_AR*.12;                                // bow wave curl (sprite bow)
+      for(let i=0;i<6;i++) if(Math.random()<.8){ ctx.fillStyle='rgba(255,255,255,.75)';
+        ctx.fillRect(Math.round(wx+Math.random()*12), Math.round(wy-4+Math.random()*7),3,1); }
+    }
+
+    const TW_AR=twImg.naturalHeight/twImg.naturalWidth;
+    function typewriter(t){ if(t<tossAt||t>splashAt) return; const u=(t-tossAt)/tossDur;
+      const START={x:438, y:612};                                             // from his raised hands (throw pose, at the pause point)
+      const x=START.x+(LAND.x-START.x)*u, y=START.y+(LAND.y-START.y)*u-Math.sin(Math.PI*u)*150;
+      const w=78, h=w*TW_AR;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(-u*2.3); ctx.drawImage(twImg,-w/2,-h/2,w,h); ctx.restore();  // tumbling
+    }
+    function splash(t){ const st=t-splashAt; if(st<0||st>2.6) return; const L=LAND;
+      const rnd=Math.random;
+      const px=(x,y,s,c)=>{ ctx.fillStyle=c; ctx.fillRect(Math.round(x),Math.round(y),s,s); };
+      // foam palette: white crest, cyan-white, pale lake-aqua (so it reads as water, not paper)
+      const foam=(a)=>{ const r=rnd(); return r<0.62?`rgba(255,255,255,${a})`:r<0.86?`rgba(222,247,251,${a})`:`rgba(150,208,220,${a})`; };
+
+      // impact flash — a quick soft burst of light on the surface
+      if(st<0.2){ const u=st/0.2, R=18+u*46;
+        const g=ctx.createRadialGradient(L.x,L.y-4,0,L.x,L.y-4,R);
+        g.addColorStop(0,`rgba(255,255,255,${(1-u)*0.6})`); g.addColorStop(1,'rgba(255,255,255,0)');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(L.x,L.y-4,R,R*0.6,0,0,7); ctx.fill(); }
+
+      // dense foam base mound at the waterline
+      if(st<0.5){ const u=st/0.5; for(let i=0;i<46;i++){ const a=rnd()*6.28, r=rnd()*(18+u*32);
+        px(L.x+Math.cos(a)*r, L.y+Math.sin(a)*r*0.45-5*(1-u), 2+Math.round(rnd()), foam((1-u*0.45)*0.92)); } }
+
+      // crown / coronet — foam spikes rising and spreading, each tipped with a droplet
+      if(st<0.6){ const u=st/0.6, N=18;
+        for(let i=0;i<=N;i++){ const ang=Math.PI*(0.08+0.84*(i/N));
+          const tipx=L.x+Math.cos(ang)*(24+u*82), tipy=L.y-Math.sin(ang)*(62*u)-6*u;
+          for(let s=1;s<=3;s++){ const f=s/3; px(L.x+(tipx-L.x)*f+(rnd()-0.5)*3, L.y+(tipy-L.y)*f, 2, foam((1-u*0.65)*(0.95-f*0.2))); }
+          px(tipx+(rnd()-0.5)*3, tipy-2, 3, foam(1-u*0.5)); } }
+
+      // fuller tapered plume with a bright core and a rounded cap, rises then settles
+      if(st<0.85){ const u=st/0.85, H=Math.sin(Math.PI*u)*110;
+        for(let s=0;s<30;s++){ const f=s/30, y=L.y-H*f, w=(1-f)*22+4;
+          for(let j=0;j<5;j++) px(L.x+(rnd()-0.5)*w*2, y+(rnd()-0.5)*4, 2+Math.round(rnd()), foam(0.95-f*0.2));
+          px(L.x+(rnd()-0.5)*5, y+(rnd()-0.5)*3, 2, `rgba(255,255,255,${0.95-f*0.22})`); }
+        const cy=L.y-H; for(let j=0;j<16;j++){ const a=rnd()*6.28, r=rnd()*13; px(L.x+Math.cos(a)*r, cy+Math.sin(a)*r*0.8, 2+Math.round(rnd()*2), foam(0.97)); } }
+
+      // droplet spray — arcing droplets with little tails, ballistic fall
+      if(st<1.2){ const N=34;
+        for(let i=0;i<N;i++){ const a=Math.PI*(0.06+0.88*(i/(N-1))), v=150+((i*53)%140), sgn=i%2?1:-1;
+          const dx=Math.cos(a)*v*st*sgn, dy=-Math.sin(a)*v*st+235*st*st, al=Math.max(0,1-st*0.8);
+          if(al<=0) continue; const sz=2+((i%4===0)?2:0);
+          px(L.x+dx, L.y+dy, sz, foam(al));
+          if(i%2===0) px(L.x+dx-Math.cos(a)*3*sgn, L.y+dy-Math.sin(a)*3+2, 1, foam(al*0.6)); } }
+
+      // ripple rings — thin elliptical crests expanding on the surface
+      for(let k=0;k<3;k++){ const rt=st-k*0.3; if(rt<=0) continue; const rr=22+rt*195, al=Math.max(0,0.7-rt*0.30);
+        if(al<=0) continue; const N=130;
+        for(let i=0;i<N;i++){ if(rnd()>0.78) continue; const ang=i/N*6.283, jr=1+(rnd()-0.5)*0.12, crest=rnd()<0.6;
+          px(L.x+Math.cos(ang)*rr*jr, L.y+Math.sin(ang)*rr*0.33*jr, crest?2:1, foam(al*(crest?1:0.55))); } }
+
+      // lingering foam patch — dissolves with a faint aqua tint
+      const fal=Math.max(0,0.55-st*0.22); if(fal>0){ for(let i=0;i<44;i++){ const a=rnd()*7, r=rnd()*54; px(L.x+Math.cos(a)*r, L.y+Math.sin(a)*r*0.35, 2+Math.round(rnd()), foam(fal*(0.5+rnd()*0.5))); } } }
+
+    let start=null, lastP=null, lastT=0, raf=0;
+    const replayBtn=document.getElementById('replay');
+    const replayRevealAt=30;   // fade the replay control in after ~2 sips (17.6s, 26.4s), before the 3rd (33.2s)
+    function frame(now){ if(start===null){ start=now; lastP=null; lastT=0; trail.length=0; }
+      const t=reduce?12:(now-start)/1000;
+      replayBtn.classList.toggle('show', reduce || t>=replayRevealAt);
+      ctx.drawImage(base,0,0);
+      reflection(reduce?0:t); water(reduce?0:t);
+      const p=boatPos(t).p;
+      let speed=0, vx=1, vy=0; if(lastP){ vx=p.x-lastP.x; vy=p.y-lastP.y; speed=Math.hypot(vx,vy)/Math.max(1e-3,t-lastT); }
+      lastP=p; lastT=t;
+      updateTrail(t,p,speed); wake(t,p,speed,vx,vy);
+      const bob=boatBob(t);
+      drawBoat(p,bob);
+      if(t<poofAt) drawMonkey(p,t,bob);                             // the rider dissolves out of the boat...
+      else if(t<poofAt+poofFade){ ctx.save(); ctx.globalAlpha=Math.max(0,1-(t-poofAt)/poofFade); drawMonkey(p,t,bob); ctx.restore(); }
+      typewriter(t); splash(t);
+      drawHero(t);                                                  // ...and poofs into the chair ashore
+      drawDressed(t);                                               // ...then the accessories poof on
+      drawSpritz(t);                                                // ...then the spritz poofs into his hand
+      poof(HERO_PX, HERO_PY, t-poofAt, HERO_H*0.34);                // arrival puff, centered on him
+      sparkles(HERO_PX, HERO_PY, t-poofAt, HERO_H*0.34, 9.6);
+      poof(ACC_X, ACC_Y, t-dressAt, HERO_H*0.36);                   // accessory puff, over hat/face/scarf
+      sparkles(ACC_X, ACC_Y, t-dressAt, HERO_H*0.36, 17.3);
+      poof(SPRITZ_PX, SPRITZ_PY, t-spritzAt, HERO_H*0.34);          // spritz puff, over the raising arm + glass
+      sparkles(SPRITZ_PX, SPRITZ_PY, t-spritzAt, HERO_H*0.34, 23.1);
+      birds(reduce?0:t); foliageTop();
+      raf=requestAnimationFrame(frame);
+    }
+    function debugStill(){ ctx.drawImage(base,0,0); reflection(0); water(0);
+      const p={x:DROP.x,y:DROP.y}, td=spritzAt+0.18;   // the finale: parked boat + spritz poofing into his hand
+      drawBoat(p,0);
+      drawHero(td); drawDressed(td); drawSpritz(td);
+      poof(SPRITZ_PX, SPRITZ_PY, td-spritzAt, HERO_H*0.34);
+      sparkles(SPRITZ_PX, SPRITZ_PY, td-spritzAt, HERO_H*0.34, 23.1);
+      birds(0); foliageTop();
+    }
+    if(location.search.includes('dbg')) debugStill();
+    else raf=requestAnimationFrame(frame);
+    document.getElementById('replay').onclick=()=>{ cancelAnimationFrame(raf); start=null; raf=requestAnimationFrame(frame); };
+  }
+})();
+</script>
